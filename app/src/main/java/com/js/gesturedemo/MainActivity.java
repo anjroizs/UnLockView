@@ -6,9 +6,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.js.gesturedemo.views.UnLockView;
+import com.jongsung.unlock.UnLockView;
 
 import java.util.List;
 

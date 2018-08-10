@@ -1,4 +1,4 @@
-package com.js.gesturedemo.views;
+package com.jongsung.unlock;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -6,8 +6,6 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -83,12 +81,12 @@ public class UnLockView extends View {
         init(context);
     }
 
-    public UnLockView(Context context, @Nullable AttributeSet attrs) {
+    public UnLockView(Context context,  AttributeSet attrs) {
         super(context, attrs);
         init(context);
     }
 
-    public UnLockView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public UnLockView(Context context,  AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context);
     }
@@ -123,7 +121,7 @@ public class UnLockView extends View {
      *
      * @param passwordLink 需要解锁的密码流
      */
-    public void setStateUnlock(@NonNull String passwordLink) {
+    public void setStateUnlock( String passwordLink) {
         if (TextUtils.isEmpty(passwordLink)) {
             return;
         }
@@ -751,7 +749,6 @@ public class UnLockView extends View {
 
     }
 
-    @Nullable
     @Override
     protected Parcelable onSaveInstanceState() {
         Parcelable parcelable = super.onSaveInstanceState();

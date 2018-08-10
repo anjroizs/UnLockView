@@ -14,12 +14,15 @@
             android:id="@+id/titleTView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center" />
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:textSize="20sp" />
 
-        <com.js.gesturedemo.views.UnLockView
+        <com.jongsung.unlock.UnLockView
             android:id="@+id/unLockView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:padding="20dp" />
     </LinearLayout>
 
     <com.js.gesturedemo.views.MyViewGroupB
