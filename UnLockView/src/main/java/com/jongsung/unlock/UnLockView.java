@@ -81,12 +81,12 @@ public class UnLockView extends View {
         init(context);
     }
 
-    public UnLockView(Context context,  AttributeSet attrs) {
+    public UnLockView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context);
     }
 
-    public UnLockView(Context context,  AttributeSet attrs, int defStyleAttr) {
+    public UnLockView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context);
     }
@@ -121,7 +121,7 @@ public class UnLockView extends View {
      *
      * @param passwordLink 需要解锁的密码流
      */
-    public void setStateUnlock( String passwordLink) {
+    public void setStateUnlock(String passwordLink) {
         if (TextUtils.isEmpty(passwordLink)) {
             return;
         }
@@ -233,7 +233,8 @@ public class UnLockView extends View {
         final float x = event.getX();
         final float y = event.getY();
         gesturePaint.setColor(gesturePaintNormalColor);
-        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+        final int actionMasked = event.getAction() & MotionEvent.ACTION_MASK;
+        if (actionMasked == MotionEvent.ACTION_DOWN) {
             resetAll();
         }
         //当前事件是否触发了某个节点
@@ -243,7 +244,7 @@ public class UnLockView extends View {
             currentNode.setLinked(true);
         }
         disappearTime = 0;
-        switch (event.getActionMasked()) {
+        switch (actionMasked) {
             case MotionEvent.ACTION_DOWN:
                 if (currentNode != null) {
                     this.initNode = currentNode;
