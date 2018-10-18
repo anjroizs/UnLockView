@@ -9,8 +9,8 @@ android {
     defaultConfig {
         minSdkVersion 3
         targetSdkVersion 27
-        versionCode 1
-        versionName "1.0"
+        versionCode 6
+        versionName "1.0.5"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -43,8 +43,11 @@ publish {
     userOrg = 'bulariy'    //注册时候的用户名
     groupId = 'com.jongsung'//   //compile引用时的第1部分
     artifactId = 'UnLockView'////发布到JCenter上的项目名字，compile引用时的第2部分项目名
-    publishVersion = '0.1.0'//版本号 ，compile引用时的最后部分，下次更新是只需要更改版本号即可
+    publishVersion = '1.0.5'//版本号 ，compile引用时的最后部分，下次更新是只需要更改版本号即可
     desc = 'A widget for unlocking gesture password'//描述，不重要
     website = 'https://github.com/gopple/UnLockView.git'  //项目的GitHub网站
     //https://bintray.com/login bulariy bulariy@gmail.com
+//    gradlew clean build bintraUpload -PbintrayUser=bulariy -PbintrayKey=5c5afa5c17b27cb39a5a8f3765cb2659e7a4c983 -PdryRun=false
+
+//    gradlew bintrayUpload -PbintrayUser=bulariy -PbintrayKey=5c5afa5c17b27cb39a5a8f3765cb2659e7a4c983 -PdryRun=false
 }

@@ -30,8 +30,8 @@ public class UnLockView extends View {
     private int minUnLockNodes = 4;//最小解锁节点
     private int maxUnLockErrorCount = 5;//最多错误次数
     private int maxUnLockNodes = Node.NODE_COUNT;//最大解锁节点
-    private int gesturePaintNormalColor = 0xff00ff00;
-    private int gesturePaintErrorColor = 0xffff0000;
+    private int gesturePaintNormalColor = 0xff56B57B;
+    private int gesturePaintErrorColor = 0xffE94F4F;
     private int unLockErrorCount = 0;
     /**
      * 节点最小高度
@@ -96,7 +96,7 @@ public class UnLockView extends View {
         linkedPath = new Path();
         gesturePaint = new Paint();
         gesturePaint.setStyle(Paint.Style.STROKE);
-        gesturePaint.setStrokeWidth(3);
+        gesturePaint.setStrokeWidth(2);
         gesturePaint.setAntiAlias(true);
         gesturePaint.setDither(true);
         gesturePaint.setStrokeJoin(Paint.Join.ROUND);
@@ -169,6 +169,7 @@ public class UnLockView extends View {
         unLockErrorCount = 0;
         resetAll();
         nodeStatus = NODE_NORMAL;
+        matchableLink = null;
         invalidate();
     }
 
@@ -384,10 +385,10 @@ public class UnLockView extends View {
             }
             if (matchableLink.equals(sb.toString())) {
                 setResultLinked();
+                setStateClosed();
                 if (onUnLockListener != null) {
                     onUnLockListener.onUnLockSuccess(linkedNodes);
                 }
-                setStateClosed();
             } else {
                 unLockErrorCount++;
                 setResultError();
@@ -430,10 +431,19 @@ public class UnLockView extends View {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-        if (heightMode == MeasureSpec.AT_MOST || heightMode == MeasureSpec.UNSPECIFIED) {
-            heightSize = (Node.NODE_RAW_COUNT - 1) * NODE_WRAP_VERTICAL_SPACING + Node.NODE_RAW_COUNT * NODE_MIN_HEIGHT + getPaddingTop() + getPaddingBottom();
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        int wrapHeight = 0;
+        for (int i = 0; i < nodes.length; i++) {
+            nodes[i].onMeasure(MeasureSpec.makeMeasureSpec(widthSize - getPaddingLeft() - getPaddingRight(), widthMode),
+                    MeasureSpec.makeMeasureSpec(heightSize - getPaddingTop() - getPaddingBottom(), heightMode));
+            wrapHeight += nodes[i].getMeasuredHeight();
         }
-        super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.EXACTLY));
+        if (heightMode == MeasureSpec.AT_MOST || heightMode == MeasureSpec.UNSPECIFIED) {
+            super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(wrapHeight, MeasureSpec.EXACTLY));
+        } else {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        }
     }
 
     @Override
@@ -457,10 +467,10 @@ public class UnLockView extends View {
         if (nodes == null) {
             return;
         }
+        drawLine(canvas);
         for (int i = 0; i < nodes.length; i++) {
             nodes[i].draw(canvas, nodeStatus);
         }
-        drawLine(canvas);
         if (disappearTime > 0) {
             resetAll();
             postDelayed(delayShowRunnable, disappearTime);
@@ -548,11 +558,15 @@ public class UnLockView extends View {
      * 默认节点的实现，可自行继承Node实现自定义节点
      */
     private static class DefaultNode extends Node {
-        private static final int INNER_RADIUS = 10;
-        private static final int OUTER_RADIUS = 50;
-        private static final int OUTER_STROKE_WIDTH = 5;
-        private static final double OUTER_RADIUS_POW = Math.pow(OUTER_RADIUS, 2);
-        private Paint innerPaint, outerPaint;
+        private static int INNER_RADIUS = 10;
+        private static int OUTER_RADIUS = 50;
+        private static int nodeWidthSpacing = 0;
+        private static int nodeHeightSpacing = 0;
+        private static int circleWidthHalf = 0;
+        private static final int NODE_WIDTH_SPACING_RATE = 1;//节点直径与间隙的比例
+        private static final int OUTER_STROKE_WIDTH = 2;
+        private static double OUTER_RADIUS_POW = Math.pow(OUTER_RADIUS, 2);
+        private Paint innerPaint, outerPaint, outerFillPaint;
 
         public DefaultNode(int index) {
             super(index);
@@ -563,6 +577,10 @@ public class UnLockView extends View {
             outerPaint.setAntiAlias(true);
             outerPaint.setStyle(Paint.Style.STROKE);
             outerPaint.setStrokeWidth(OUTER_STROKE_WIDTH);
+            outerFillPaint = new Paint();
+            outerFillPaint.setAntiAlias(true);
+            outerFillPaint.setStyle(Paint.Style.FILL);
+            outerFillPaint.setColor(0xffffffff);
         }
 
         @Override
@@ -573,6 +591,23 @@ public class UnLockView extends View {
         @Override
         boolean contains(float x0, float y0, float x1, float y1) {
             return pointToLine(x0, y0, x1, y1, pointX, pointY) <= OUTER_RADIUS;
+        }
+
+        @Override
+        void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+            int height = MeasureSpec.getSize(heightMeasureSpec);
+            int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+            int width = MeasureSpec.getSize(widthMeasureSpec);
+
+            nodeWidthSpacing = (width - (OUTER_STROKE_WIDTH * NODE_RAW_COUNT)) / (NODE_WIDTH_SPACING_RATE * NODE_RAW_COUNT + NODE_RAW_COUNT - 1);
+            OUTER_RADIUS = (nodeWidthSpacing * NODE_WIDTH_SPACING_RATE) / 2;
+            circleWidthHalf = OUTER_RADIUS + OUTER_STROKE_WIDTH;
+            if (heightMode == MeasureSpec.AT_MOST || heightMode == MeasureSpec.UNSPECIFIED) {
+                nodeHeightSpacing = nodeWidthSpacing;
+            } else {
+                nodeHeightSpacing = (int) ((height - NODE_COLUMN_COUNT * circleWidthHalf * 2) * 1.0 / (NODE_COLUMN_COUNT - 1));
+            }
         }
 
         // 点到直线的最短距离的判断 点（x0,y0） 到由两点组成的线段（x1,y1） ,( x2,y2 )
@@ -615,9 +650,14 @@ public class UnLockView extends View {
 
         @Override
         public void onLayout(boolean changed, int childLeft, int childTop, int childRight, int childBottom, int position) {
-            final int circleWidthHalf = OUTER_RADIUS + OUTER_STROKE_WIDTH;
-            final int nodeWidthSpacing = (int) ((childRight - childLeft - NODE_RAW_COUNT * circleWidthHalf * 2) * 1.0 / (NODE_RAW_COUNT - 1));
-            final int nodeHeightSpacing = (int) ((childBottom - childTop - NODE_COLUMN_COUNT * circleWidthHalf * 2) * 1.0 / (NODE_COLUMN_COUNT - 1));
+//            final int width = childRight - childLeft;
+//            final int nodeWidthSpacing = (width - (OUTER_STROKE_WIDTH * NODE_RAW_COUNT)) / (NODE_WIDTH_SPACING_RATE * NODE_RAW_COUNT + NODE_RAW_COUNT - 1);
+//            OUTER_RADIUS = (nodeWidthSpacing * NODE_WIDTH_SPACING_RATE) / 2;
+//            final int circleWidthHalf = OUTER_RADIUS + OUTER_STROKE_WIDTH;
+//
+////            final int nodeWidthSpacing = (int) ((childRight - childLeft - NODE_RAW_COUNT * circleWidthHalf * 2) * 1.0 / (NODE_RAW_COUNT - 1));
+//            final int nodeHeightSpacing = (int) ((childBottom - childTop - NODE_COLUMN_COUNT * circleWidthHalf * 2) * 1.0 / (NODE_COLUMN_COUNT - 1));
+            //x,y代表第几行第几列
             int x = position % NODE_RAW_COUNT;
             int y = position / NODE_COLUMN_COUNT;
             //从父布局左边开始绘制+横向间隔*x+(当前圆圈的半径+圆圈厚度)+(圆的直径*横向当前第几个圆圈《也就是前面圆圈所占的宽度》)
@@ -628,26 +668,37 @@ public class UnLockView extends View {
 
         @Override
         public void onDraw(Canvas canvas, int nodeStatus) {
+            canvas.drawCircle(pointX, pointY, OUTER_RADIUS, outerFillPaint);
             canvas.drawCircle(pointX, pointY, INNER_RADIUS, innerPaint);
             canvas.drawCircle(pointX, pointY, OUTER_RADIUS, outerPaint);
         }
 
         @Override
+        int getMeasuredHeight() {
+            int raw = (index + 1) / NODE_RAW_COUNT;
+            if (raw < NODE_RAW_COUNT - 1) {
+                return (int) (circleWidthHalf * 2.0 + nodeHeightSpacing);
+            } else {
+                return (int) (circleWidthHalf * 2.0);
+            }
+        }
+
+        @Override
         public void drawNormal(Canvas canvas) {
-            innerPaint.setColor(0xffb3b3b3);
-            outerPaint.setColor(0xffffffff);
+            innerPaint.setColor(0x00ffffff);
+            outerPaint.setColor(0xffd3d3d3);
         }
 
         @Override
         public void drawLinked(Canvas canvas) {
-            innerPaint.setColor(0xff00ff00);
-            outerPaint.setColor(0xff00ff00);
+            innerPaint.setColor(0xff56B57B);
+            outerPaint.setColor(0xff56B57B);
         }
 
         @Override
         public void drawLinkedError(Canvas canvas) {
-            innerPaint.setColor(0xffff0000);
-            outerPaint.setColor(0xffff0000);
+            innerPaint.setColor(0xffE94F4F);
+            outerPaint.setColor(0xffE94F4F);
         }
     }
 
@@ -723,9 +774,13 @@ public class UnLockView extends View {
          */
         abstract boolean contains(float x0, float y0, float x1, float y1);
 
+        abstract void onMeasure(int widthMeasureSpec, int heightMeasureSpec);
+
         abstract void onLayout(boolean changed, int left, int top, int right, int bottom, int position);
 
         abstract void onDraw(Canvas canvas, int nodeStatus);
+
+        abstract int getMeasuredHeight();
 
         /**
          * 未触摸过的节点
